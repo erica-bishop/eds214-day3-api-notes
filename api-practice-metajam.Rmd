@@ -1,0 +1,122 @@
+---
+title: "API practice with R"
+output: html_document
+date: "2022-08-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dataRetrieval)
+library(tidyverse)
+library(janitor)
+library(metajam)
+```
+
+## Part 1: Plotting Ventura River discharge from USGS data
+
+Use the USGS `dataRetrieval` R package to retrieve hydrological data.
+
+Tutorial on: https://cran.r-project.org/web/packages/dataRetrieval/vignettes/dataRetrieval.html#daily-data
+
+Plot the discharge time-series for the Ventura River from 2019-10-01 to 2020-10-05
+
+```{r}
+#Pull Ventura river data - site 11118500
+
+siteNumber <- "11118500"
+ChoptankInfo <- readNWISsite(siteNumber)
+parameterCD <- "00060"
+
+#Raw daily data
+
+rawDailyData <- readNWISdv(siteNumber, parameterCD, "2019-10-01", "2020-10-05")
+
+
+#Look at the metadata to make sense of this:
+siteInfo <- attr(rawDailyData, "siteInfo")
+#that was unhelpful...
+
+#rename columns 
+ventura_discharge <- renameNWISColumns(rawDailyData) %>% 
+  clean_names()
+
+names(ventura_discharge)
+
+
+```
+
+Now it's time to plot:
+
+```{r}
+
+ggplot(data = ventura_discharge, aes(x = date,
+                                     y = flow)) +
+  geom_jitter(size = 0.5, aes(color = flow))
+
+
+```
+
+## Part 2: Using `metajam`
+
+The metajam R package relies on the dataONE API to download data and metadata into your R Environment. It is currently supporting KNB, ADC and EDI repositories because they rely on the metadata standard EML.
+
+Intro to metajam: https://brunj7.github.io/EDS-214-analytical-workflows/slides/metajam_intro.html#1
+
+### determine what percentage of Alaskan households are only speaking English:
+
+```{r}
+#set inputs
+
+data_obj <- "https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3A7fc6f6db-c5ea-426a-a743-1f2edafb43b8"
+path <- "~/eds214-day3-api-notes"
+
+#downloaddata and metadata
+
+download_d1_data(data_obj, path)
+
+#now read in the downloaded files - this returns a list of dataframes
+
+full_dataset <- read_d1_files("~/eds214-day3-api-notes/doi_10.5063_F1CJ8BPH__household_language__csv")
+
+#Extract the dataframe
+
+language_data <- full_dataset$data %>% 
+  clean_names()
+
+
+```
+
+Now write code that will compute the percentage of Alaskan households speaking only english for 2009 to 2015
+
+```{r}
+data_subset <- language_data %>% 
+  filter(year %in% 2009:2015) %>% 
+  group_by(year) %>% 
+  summarize("only-english-percentage" = (sum(speak_only_english, na.rm = TRUE)/sum(total, na.rm = TRUE))*100) #%>% 
+  #mutate(year = lubridate::year(year))
+
+plot_data <- as.data.frame(data_subset)
+
+```
+
+and plot to visualize
+
+```{r}
+
+ggplot(data = plot_data, aes(x = "year",
+                             y = "only-english-percentage")) +
+         geom_jitter() +
+  #xlim(2009, 2015) +
+  #ylim(0, 100)
+
+  
+```
+
+
+
+
+
+
+
+
+
