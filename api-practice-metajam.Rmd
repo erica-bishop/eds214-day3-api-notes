@@ -92,7 +92,7 @@ Now write code that will compute the percentage of Alaskan households speaking o
 data_subset <- language_data %>% 
   filter(year %in% 2009:2015) %>% 
   group_by(year) %>% 
-  summarize("only-english-percentage" = (sum(speak_only_english, na.rm = TRUE)/sum(total, na.rm = TRUE))*100) #%>% 
+  summarize(percentage = (sum(speak_only_english, na.rm = TRUE)/sum(total, na.rm = TRUE))*100) #%>% 
   #mutate(year = lubridate::year(year))
 
 # plot_data <- data_subset %>% 
@@ -107,17 +107,17 @@ and plot to visualize
 
 ```{r}
 
-ggplot(data = data_subset, aes(x = "year",
-                             y = "only-english-percentage")) +
-         geom_jitter() +
-  coord_cartesian()
+ggplot(data = data_subset, aes(x = year,
+                             y = percentage)) +
+         geom_point() +
+  xlim(2009, 2015) +
+  ylim(0, 100)
 
 
 #+
   # scale_y_discrete() +
   # scale_x_date()
-  #xlim(2009, 2015) +
-  #ylim(0, 100)
+
 
   
 ```
