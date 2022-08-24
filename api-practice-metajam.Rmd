@@ -95,7 +95,11 @@ data_subset <- language_data %>%
   summarize("only-english-percentage" = (sum(speak_only_english, na.rm = TRUE)/sum(total, na.rm = TRUE))*100) #%>% 
   #mutate(year = lubridate::year(year))
 
-plot_data <- as.data.frame(data_subset)
+# plot_data <- data_subset %>% 
+#   as.character("year") %>%
+#   as.Date("year") %>% 
+#   as.data.frame()
+  #lubridate::year("year")
 
 ```
 
@@ -103,13 +107,27 @@ and plot to visualize
 
 ```{r}
 
-ggplot(data = plot_data, aes(x = "year",
+ggplot(data = data_subset, aes(x = "year",
                              y = "only-english-percentage")) +
          geom_jitter() +
+  coord_cartesian()
+
+
+#+
+  # scale_y_discrete() +
+  # scale_x_date()
   #xlim(2009, 2015) +
   #ylim(0, 100)
 
   
+```
+
+
+
+```{r}
+ggplot(language_data, aes(x = "year",
+                          y = "speak_only_english")) +
+  geom_jitter()
 ```
 
 
